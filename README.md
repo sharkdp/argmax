@@ -12,4 +12,5 @@ function that returns `false` if `arg` would overflow the maximum size.
 - https://www.in-ulm.de/~mascheck/various/argmax/
 - https://github.com/tavianator/bfs/blob/9b50adaaaa4fedc8bda6fcf32595ecf7a682fa8b/exec.c#L72
 - https://stackoverflow.com/questions/46897008/why-am-i-getting-e2big-from-exec-when-im-accounting-for-the-arguments-and-the
+- https://github.com/rust-lang/rust/issues/40384
 - `xargs --show-limits`
