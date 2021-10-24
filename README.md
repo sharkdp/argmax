@@ -1,8 +1,10 @@
 ## argmax
 
-`argmax` is a library that allows Rust applications to avoid *Argument list too long* errors (`E2BIG`)
-
-
+`argmax` is a library that allows Rust applications to avoid *Argument list too long* errors (`E2BIG`) by providing a `std::process::Command` wrapper with a
+``` rust
+fn try_arg<S: AsRef<OsStr>>(&mut self, arg: S) -> bool
+```
+function that returns `false` if `arg` would overflow the maximum size.
 
 ## Resources
 
