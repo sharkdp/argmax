@@ -5,14 +5,17 @@
 //!
 //! # Usage
 //! ```
+//! # #[cfg(unix)]
+//! # {
 //! use argmax::Command;
 //!
-//! let mut cmd = Command::new("/usr/bin/echo");
+//! let mut cmd = Command::new("/bin/echo");
 //!
 //! // Add as many arguments as possible
 //! while cmd.try_arg("foo") {}
 //!
 //! assert!(cmd.status().unwrap().success());
+//! # }
 //! ```
 
 use std::ffi::OsStr;
@@ -20,8 +23,15 @@ use std::io;
 use std::process::{self, ExitStatus, Output, Stdio};
 
 mod bounds;
+#[cfg(not(unix))]
+mod other;
 #[cfg(unix)]
 mod unix;
+
+#[cfg(not(unix))]
+use other as platform;
+#[cfg(unix)]
+use unix as platform;
 
 pub struct Command {
     inner: process::Command,
@@ -32,11 +42,8 @@ impl Command {
     pub fn new<S: AsRef<OsStr>>(program: S) -> Self {
         Command {
             inner: process::Command::new(&program),
-            #[cfg(unix)]
-            remaining_argument_length: unix::available_argument_length([program].iter())
+            remaining_argument_length: platform::available_argument_length([program].iter())
                 .unwrap_or(bounds::UPPER_BOUND_ARG_MAX),
-            #[cfg(not(unix))]
-            remaining_argument_length: bounds::REASONABLE_DEFAULT_ARG_LENGTH,
         }
     }
 
@@ -46,7 +53,7 @@ impl Command {
     }
 
     pub fn try_arg<S: AsRef<OsStr>>(&mut self, arg: S) -> bool {
-        let arg_size = unix::arg_size(&arg);
+        let arg_size = platform::arg_size(&arg);
         if arg_size > self.remaining_argument_length {
             false
         } else {
