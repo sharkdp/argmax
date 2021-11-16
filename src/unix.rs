@@ -79,16 +79,6 @@ pub(crate) fn available_argument_length<O: AsRef<OsStr>>(
     Some(arg_max)
 }
 
-#[test]
-fn test_arg_size() {
-    assert_eq!(arg_size(OsStr::new("A")), 10);
-}
-
-#[test]
-fn test_environment_variable_size() {
-    assert_eq!(environment_variable_size("SHELL", "/usr/bin/zsh"), 27);
-}
-
 #[cfg(test)]
 mod tests {
     fn command_with_n_args_succeeds(n: i64) -> bool {
