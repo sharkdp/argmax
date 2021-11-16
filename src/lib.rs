@@ -3,6 +3,7 @@ use std::io;
 use std::process::{self, ExitStatus, Output, Stdio};
 
 mod bounds;
+#[cfg(unix)]
 mod unix;
 
 pub struct Command {
@@ -14,8 +15,11 @@ impl Command {
     pub fn new<S: AsRef<OsStr>>(program: S) -> Self {
         Command {
             inner: process::Command::new(&program),
+            #[cfg(unix)]
             remaining_argument_length: unix::available_argument_length([program].iter())
                 .unwrap_or(bounds::UPPER_BOUND_ARG_MAX),
+            #[cfg(not(unix))]
+            remaining_argument_length: bounds::REASONABLE_DEFAULT_ARG_LENGTH,
         }
     }
 
@@ -41,56 +45,5 @@ impl Command {
 
     pub fn status(&mut self) -> io::Result<ExitStatus> {
         self.inner.status()
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use std::ffi::OsStr;
-    use std::process::Stdio;
-
-    use super::unix::available_argument_length;
-
-    fn command_with_n_args_succeeds(n: i64) -> bool {
-        std::process::Command::new("/bin/echo")
-            .args((0..n).map(|_| "foo"))
-            .stdout(Stdio::null())
-            .stderr(Stdio::null())
-            .status()
-            .map(|status| status.success())
-            .unwrap_or(false)
-    }
-
-    fn binary_search(mut lower: i64, mut upper: i64) -> i64 {
-        while lower <= upper {
-            let n = (lower + upper) / 2;
-
-            if command_with_n_args_succeeds(n) {
-                lower = n + 1;
-            } else {
-                upper = n - 1;
-            }
-        }
-
-        lower
-    }
-
-    fn experimental_arg_limit() -> i64 {
-        binary_search(0, 1_000_000)
-    }
-
-    #[test]
-    fn available_argument_length_is_smaller_than_experimental_limit() {
-        let experimental_limit = experimental_arg_limit();
-        println!("Experimental limit: {}", experimental_limit);
-
-        let arg_size = 8 + 3 + 1;
-        let experimental_size_limit =
-            experimental_limit * arg_size + 8 + 1 + "/bin/echo".len() as i64;
-
-        assert!(
-            available_argument_length([OsStr::new("/bin/echo")].iter()).unwrap_or(0)
-                <= experimental_size_limit
-        );
     }
 }
