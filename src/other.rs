@@ -6,7 +6,7 @@ use std::mem::size_of;
 
 use libc::c_char;
 
-const REASONABLE_DEFAULT_ARG_LENGTH: i64 = 16 * 1024;
+const REASONABLE_DEFAULT_ARG_LENGTH: i64 = 8 * 1024;
 
 pub(crate) fn arg_size<O: AsRef<OsStr>>(arg: O) -> i64 {
     size_of::<*const c_char>() as i64 // size for the pointer in argv**
@@ -18,5 +18,5 @@ pub(crate) fn arg_size<O: AsRef<OsStr>>(arg: O) -> i64 {
 pub(crate) fn available_argument_length<O: AsRef<OsStr>>(
     fixed_args: impl Iterator<Item = O>,
 ) -> Option<i64> {
-    Some(REASONABLE_DEFAULT_ARG_LENGTH - fixed_args.map(|a| arg_size(a.as_ref())).sum::<i64>())
+    Some(REASONABLE_DEFAULT_ARG_LENGTH - fixed_args.map(|a| arg_size(a.as_ref())).sum::<i64>() - 1)
 }
