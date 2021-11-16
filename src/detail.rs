@@ -1,5 +1,7 @@
-// The code in this module is a direct translation of the corresponding
-// C implementation in 'bfs' (https://github.com/tavianator/bfs).
+// The code in this module is a direct translation of the corresponding C
+// implementation in 'bfs' (https://github.com/tavianator/bfs), as of commit
+// 9b50adaaaa4fedc8bda6fcf32595ecf7a682fa8b. bfs is licensed under the BSD
+// Zero Clause License, copyright Tavian Barnes <tavianator@tavianator.com>.
 
 use std::env;
 use std::ffi::OsStr;
