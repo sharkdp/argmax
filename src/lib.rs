@@ -1,3 +1,20 @@
+//! `argmax` is a library that allows applications to avoid *Argument list too long* errors
+//! (`E2BIG`) by providing a wrapper around [`std::process::Command`]. The [`Command::try_arg`]
+//! function can be used to add as many arguments as possible. The function returns `false` if no
+//! more arguments can be added (command execution would result in immediate failure).
+//!
+//! # Usage
+//! ```
+//! use argmax::Command;
+//!
+//! let mut cmd = Command::new("/usr/bin/echo");
+//!
+//! // Add as many arguments as possible
+//! while cmd.try_arg("foo") {}
+//!
+//! assert!(cmd.status().unwrap().success());
+//! ```
+
 use std::ffi::OsStr;
 use std::io;
 use std::process::{self, ExitStatus, Output, Stdio};
