@@ -33,6 +33,9 @@ use other as platform;
 #[cfg(unix)]
 use unix as platform;
 
+#[cfg(test)]
+mod experimental_limit;
+
 pub struct Command {
     inner: process::Command,
     remaining_argument_length: i64,

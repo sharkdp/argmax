@@ -95,34 +95,7 @@ pub(crate) fn max_single_argument_length() -> i64 {
 
 #[cfg(test)]
 mod tests {
-    fn command_with_n_args_succeeds(n: i64) -> bool {
-        use std::process::Stdio;
-        std::process::Command::new("/bin/echo")
-            .args((0..n).map(|_| "foo"))
-            .stdout(Stdio::null())
-            .stderr(Stdio::null())
-            .status()
-            .map(|status| status.success())
-            .unwrap_or(false)
-    }
-
-    fn binary_search(mut lower: i64, mut upper: i64) -> i64 {
-        while lower <= upper {
-            let n = (lower + upper) / 2;
-
-            if command_with_n_args_succeeds(n) {
-                lower = n + 1;
-            } else {
-                upper = n - 1;
-            }
-        }
-
-        lower
-    }
-
-    fn experimental_arg_limit() -> i64 {
-        binary_search(0, 1_000_000)
-    }
+    use crate::experimental_limit::experimental_arg_limit;
 
     #[test]
     fn available_argument_length_is_smaller_than_experimental_limit() {

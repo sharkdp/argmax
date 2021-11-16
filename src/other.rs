@@ -25,3 +25,10 @@ pub(crate) fn available_argument_length<O: AsRef<OsStr>>(
 pub(crate) const fn max_single_argument_length() -> i64 {
     MAX_SINGLE_ARGUMENT_LENGTH
 }
+
+#[test]
+fn show_experimental_limit() {
+    use crate::experimental_limit::experimental_arg_limit;
+
+    println!("Experimental limit: {}", experimental_arg_limit());
+}
