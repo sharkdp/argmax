@@ -10,7 +10,7 @@ use std::mem::size_of;
 use libc::c_char;
 use nix::unistd::{sysconf, SysconfVar};
 
-pub const UPPER_BOUND_ARG_MAX: i64 = 16 * 1024 * 1024;
+use crate::bounds::UPPER_BOUND_ARG_MAX;
 
 /// Required size for a single KEY=VAR environment variable string and the
 /// corresponding pointer in envp**.
@@ -38,7 +38,7 @@ pub(crate) fn arg_size<O: AsRef<OsStr>>(arg: O) -> i64 {
 }
 
 /// Total size that is available for arguments to a spawned child process.
-pub fn available_argument_length<O: AsRef<OsStr>>(
+pub(crate) fn available_argument_length<O: AsRef<OsStr>>(
     fixed_args: impl Iterator<Item = O>,
 ) -> Option<i64> {
     let mut arg_max = sysconf(SysconfVar::ARG_MAX).ok().flatten()?;
