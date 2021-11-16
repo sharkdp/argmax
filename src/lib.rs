@@ -43,7 +43,7 @@ impl Command {
         Command {
             inner: process::Command::new(&program),
             remaining_argument_length: platform::available_argument_length([program].iter())
-                .unwrap_or(bounds::UPPER_BOUND_ARG_MAX),
+                .unwrap_or(bounds::REASONABLE_DEFAULT_LENGTH),
         }
     }
 

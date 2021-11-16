@@ -1,1 +1,1 @@
-pub(crate) const UPPER_BOUND_ARG_MAX: i64 = 16 * 1024 * 1024;
+pub(crate) const REASONABLE_DEFAULT_LENGTH: i64 = 8 * 1024;

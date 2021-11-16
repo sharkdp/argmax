@@ -10,7 +10,7 @@ use std::mem::size_of;
 use libc::c_char;
 use nix::unistd::{sysconf, SysconfVar};
 
-use crate::bounds::UPPER_BOUND_ARG_MAX;
+const UPPER_BOUND_COMMAND_LINE_LENGTH: i64 = 16 * 1024 * 1024;
 
 /// Required size for a single KEY=VAR environment variable string and the
 /// corresponding pointer in envp**.
@@ -44,7 +44,7 @@ pub(crate) fn available_argument_length<O: AsRef<OsStr>>(
     let mut arg_max = sysconf(SysconfVar::ARG_MAX).ok().flatten()? as i64;
 
     if arg_max < 0 {
-        arg_max = UPPER_BOUND_ARG_MAX;
+        arg_max = UPPER_BOUND_COMMAND_LINE_LENGTH;
     }
 
     // We have to share space with the environment variables
@@ -72,8 +72,8 @@ pub(crate) fn available_argument_length<O: AsRef<OsStr>>(
 
     if arg_max < 0 {
         arg_max = 0;
-    } else if arg_max > UPPER_BOUND_ARG_MAX {
-        arg_max = UPPER_BOUND_ARG_MAX;
+    } else if arg_max > UPPER_BOUND_COMMAND_LINE_LENGTH {
+        arg_max = UPPER_BOUND_COMMAND_LINE_LENGTH;
     }
 
     Some(arg_max)
