@@ -1,7 +1,14 @@
 [package]
 name = "argmax"
+description = " Rust library to deal with 'argument too long' errors"
+categories = ["command-line-interface"]
+homepage = "https://github.com/sharkdp/argmax"
+repository = "https://github.com/sharkdp/argmax"
+license = "MIT/Apache-2.0"
 version = "0.1.0"
+readme = "README.md"
 edition = "2018"
+authors = ["David Peter <mail@david-peter.de>"]
 
 [dependencies]
 nix = "0.23"
