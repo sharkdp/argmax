@@ -55,3 +55,21 @@ fn can_run_command_with_maximum_number_of_arguments() {
         try_n_args *= 2;
     }
 }
+
+#[test]
+fn can_run_command_with_single_long_argument() {
+    let mut length = 1;
+    loop {
+        let mut cmd = get_echo_command();
+        cmd.stdout(Stdio::null());
+
+        let arg = std::iter::repeat("x").take(length).collect::<String>();
+        if !cmd.try_arg(arg) {
+            break;
+        }
+        println!("Trying execution with argument length {}", length);
+        assert!(cmd.status().unwrap().success());
+
+        length *= 2;
+    }
+}

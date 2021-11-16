@@ -7,10 +7,26 @@ use std::env;
 use std::ffi::OsStr;
 use std::mem::size_of;
 
+use lazy_static::lazy_static;
 use libc::c_char;
 use nix::unistd::{sysconf, SysconfVar};
 
 const UPPER_BOUND_COMMAND_LINE_LENGTH: i64 = 16 * 1024 * 1024;
+
+lazy_static! {
+    static ref PAGE_SIZE: i64 = {
+        sysconf(SysconfVar::PAGE_SIZE)
+            .ok()
+            .flatten()
+            .map(|page_size| page_size as i64)
+            .filter(|s| *s >= 4096)
+            .unwrap_or(4096)
+    };
+
+    // TODO: The following is probably Linux specific. See /usr/include/linux/binfmts.h for
+    // details.
+    pub static ref MAX_SINGLE_ARGUMENT_LENGTH: i64 = 32 * *PAGE_SIZE - 1;
+}
 
 /// Required size for a single KEY=VAR environment variable string and the
 /// corresponding pointer in envp**.
@@ -59,13 +75,7 @@ pub(crate) fn available_argument_length<O: AsRef<OsStr>>(
 
     // Assume arguments are counted with the granularity of a single page,
     // so allow a one page cushion to account for rounding up
-    let page_size = sysconf(SysconfVar::PAGE_SIZE)
-        .ok()
-        .flatten()
-        .map(|page_size| page_size as i64)
-        .filter(|s| *s >= 4096)
-        .unwrap_or(4096);
-    arg_max -= page_size;
+    arg_max -= *PAGE_SIZE;
 
     // POSIX recommends an additional 2048 bytes of headroom
     arg_max -= 2048;
@@ -77,6 +87,10 @@ pub(crate) fn available_argument_length<O: AsRef<OsStr>>(
     }
 
     Some(arg_max)
+}
+
+pub(crate) fn max_single_argument_length() -> i64 {
+    *MAX_SINGLE_ARGUMENT_LENGTH
 }
 
 #[cfg(test)]

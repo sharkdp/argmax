@@ -53,6 +53,10 @@ impl Command {
     }
 
     pub fn try_arg<S: AsRef<OsStr>>(&mut self, arg: S) -> bool {
+        if arg.as_ref().len() as i64 > platform::max_single_argument_length() {
+            return false;
+        }
+
         let arg_size = platform::arg_size(&arg);
         if arg_size > self.remaining_argument_length {
             false
