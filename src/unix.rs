@@ -41,7 +41,7 @@ pub(crate) fn arg_size<O: AsRef<OsStr>>(arg: O) -> i64 {
 pub(crate) fn available_argument_length<O: AsRef<OsStr>>(
     fixed_args: impl Iterator<Item = O>,
 ) -> Option<i64> {
-    let mut arg_max = sysconf(SysconfVar::ARG_MAX).ok().flatten()?;
+    let mut arg_max = sysconf(SysconfVar::ARG_MAX).ok().flatten()? as i64;
 
     if arg_max < 0 {
         arg_max = UPPER_BOUND_ARG_MAX;
@@ -62,6 +62,7 @@ pub(crate) fn available_argument_length<O: AsRef<OsStr>>(
     let page_size = sysconf(SysconfVar::PAGE_SIZE)
         .ok()
         .flatten()
+        .map(|page_size| page_size as i64)
         .filter(|s| *s >= 4096)
         .unwrap_or(4096);
     arg_max -= page_size;
