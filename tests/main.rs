@@ -4,7 +4,7 @@ use argmax::Command;
 
 #[test]
 fn can_execute_simple_command_with_few_arguments() {
-    let mut cmd = Command::new("/usr/bin/echo");
+    let mut cmd = Command::new("/bin/echo");
     assert!(cmd.try_arg("foo"));
     assert!(cmd.try_arg("bar"));
     assert_eq!(b"foo bar\n", &cmd.output().unwrap().stdout[..]);
@@ -14,7 +14,7 @@ fn can_execute_simple_command_with_few_arguments() {
 fn can_run_command_with_maximum_number_of_arguments() {
     let mut try_n_args = 1;
     loop {
-        let mut cmd = Command::new("/usr/bin/echo");
+        let mut cmd = Command::new("/bin/echo");
         cmd.stdout(Stdio::null());
         let mut reached_limit = false;
 
