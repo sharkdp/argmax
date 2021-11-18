@@ -63,7 +63,7 @@ fn can_run_command_with_single_long_argument() {
         let mut cmd = get_echo_command();
         cmd.stdout(Stdio::null());
 
-        let arg = std::iter::repeat("x").take(length).collect::<String>();
+        let arg = "x".repeat(length);
         if !cmd.try_arg(arg) {
             break;
         }
