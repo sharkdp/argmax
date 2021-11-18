@@ -5,11 +5,11 @@
 
 use std::env;
 use std::ffi::OsStr;
-use std::mem::size_of;
 
 use lazy_static::lazy_static;
-use libc::c_char;
 use nix::unistd::{sysconf, SysconfVar};
+
+use crate::constants::POINTER_SIZE_CONSERVATIVE;
 
 const UPPER_BOUND_COMMAND_LINE_LENGTH: i64 = 16 * 1024 * 1024;
 
@@ -31,7 +31,7 @@ lazy_static! {
 /// Required size for a single KEY=VAR environment variable string and the
 /// corresponding pointer in envp**.
 fn environment_variable_size<O: AsRef<OsStr>>(key: O, value: O) -> i64 {
-    size_of::<*const c_char>() as i64 // size for the pointer in envp**
+    POINTER_SIZE_CONSERVATIVE // size for the pointer in envp**
       + key.as_ref().len() as i64     // size for the variable name
       + 1                             // size for the '=' sign
       + value.as_ref().len() as i64   // size for the value
@@ -48,7 +48,7 @@ fn size_of_environment() -> i64 {
 /// Required size to store a single ARG argument and the corresponding
 /// pointer in argv**.
 pub(crate) fn arg_size<O: AsRef<OsStr>>(arg: O) -> i64 {
-    size_of::<*const c_char>() as i64 // size for the pointer in argv**
+    POINTER_SIZE_CONSERVATIVE // size for the pointer in argv**
       + arg.as_ref().len() as i64     // size for argument string
       + 1 // terminating NULL
 }
@@ -66,12 +66,12 @@ pub(crate) fn available_argument_length<O: AsRef<OsStr>>(
     // We have to share space with the environment variables
     arg_max -= size_of_environment();
     // Account for the terminating NULL entry
-    arg_max -= size_of::<*const c_char>() as i64;
+    arg_max -= POINTER_SIZE_CONSERVATIVE;
 
     // Account for the arguments so far
     arg_max -= fixed_args.map(|a| arg_size(a.as_ref())).sum::<i64>();
     // Account for the terminating NULL entry
-    arg_max -= size_of::<*const c_char>() as i64;
+    arg_max -= POINTER_SIZE_CONSERVATIVE;
 
     // Assume arguments are counted with the granularity of a single page,
     // so allow a one page cushion to account for rounding up

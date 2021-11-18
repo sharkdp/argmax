@@ -2,16 +2,13 @@
 // Some of it has been found by trial and error.
 
 use std::ffi::OsStr;
-use std::mem::size_of;
 
-use libc::c_char;
-
-use crate::bounds::REASONABLE_DEFAULT_LENGTH;
+use crate::constants::{POINTER_SIZE_CONSERVATIVE, REASONABLE_DEFAULT_LENGTH};
 
 pub(crate) const MAX_SINGLE_ARGUMENT_LENGTH: i64 = REASONABLE_DEFAULT_LENGTH;
 
 pub(crate) fn arg_size<O: AsRef<OsStr>>(arg: O) -> i64 {
-    size_of::<*const c_char>() as i64 // size for the pointer in argv**
+    POINTER_SIZE_CONSERVATIVE // size for the pointer in argv**
       + arg.as_ref().len() as i64     // size for argument string
       + 1 // terminating NULL
 }

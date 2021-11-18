@@ -12,5 +12,4 @@ authors = ["David Peter <mail@david-peter.de>"]
 
 [dependencies]
 nix = "0.23"
-libc = "0.2"
 lazy_static = "1.4"

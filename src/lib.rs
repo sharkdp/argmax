@@ -22,7 +22,7 @@ use std::ffi::OsStr;
 use std::io;
 use std::process::{self, ExitStatus, Output, Stdio};
 
-mod bounds;
+mod constants;
 #[cfg(not(unix))]
 mod other;
 #[cfg(unix)]
@@ -46,7 +46,7 @@ impl Command {
         Command {
             inner: process::Command::new(&program),
             remaining_argument_length: platform::available_argument_length([program].iter())
-                .unwrap_or(bounds::REASONABLE_DEFAULT_LENGTH),
+                .unwrap_or(constants::REASONABLE_DEFAULT_LENGTH),
         }
     }
 
