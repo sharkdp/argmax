@@ -1,6 +1,7 @@
 # argmax
 
 [![CICD](https://github.com/sharkdp/argmax/actions/workflows/CICD.yml/badge.svg)](https://github.com/sharkdp/argmax/actions/workflows/CICD.yml)
+<a href="https://crates.io/crates/argmax"><img src="https://img.shields.io/crates/v/argmax.svg?colorB=319e8c" alt="Version info"></a><br>
 
 `argmax` is a library that allows Rust applications to avoid *Argument list too long* errors (`E2BIG`) by providing a `std::process::Command` wrapper with a
 ``` rust
