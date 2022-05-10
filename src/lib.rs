@@ -20,7 +20,8 @@
 
 use std::ffi::OsStr;
 use std::io;
-use std::process::{self, ExitStatus, Output, Stdio};
+use std::path::Path;
+use std::process::{self, Child, ExitStatus, Output, Stdio};
 
 mod constants;
 #[cfg(not(unix))]
@@ -42,6 +43,7 @@ pub struct Command {
 }
 
 impl Command {
+    /// See [`std::process::Command::new`][process::Command#method.new].
     pub fn new<S: AsRef<OsStr>>(program: S) -> Self {
         Command {
             inner: process::Command::new(&program),
@@ -50,11 +52,8 @@ impl Command {
         }
     }
 
-    pub fn stdout<T: Into<Stdio>>(&mut self, cfg: T) -> &mut Command {
-        self.inner.stdout(cfg);
-        self
-    }
-
+    /// Like [`std::process::Command::arg`][process::Command#method.arg], add an argument to the
+    /// command, but only if it will fit.
     pub fn try_arg<S: AsRef<OsStr>>(&mut self, arg: S) -> bool {
         if arg.as_ref().len() as i64 > platform::max_single_argument_length() {
             return false;
@@ -70,10 +69,41 @@ impl Command {
         }
     }
 
+    /// See [`std::process::Command::current_dir`][process::Command#method.current_dir].
+    pub fn current_dir<P: AsRef<Path>>(&mut self, dir: P) -> &mut Self {
+        self.inner.current_dir(dir);
+        self
+    }
+
+    /// See [`std::process::Command::stdin`][process::Command#method.stdin].
+    pub fn stdin<T: Into<Stdio>>(&mut self, cfg: T) -> &mut Self {
+        self.inner.stdin(cfg);
+        self
+    }
+
+    /// See [`std::process::Command::stdout`][process::Command#method.stdout].
+    pub fn stdout<T: Into<Stdio>>(&mut self, cfg: T) -> &mut Self {
+        self.inner.stdout(cfg);
+        self
+    }
+
+    /// See [`std::process::Command::stderr`][process::Command#method.stderr].
+    pub fn stderr<T: Into<Stdio>>(&mut self, cfg: T) -> &mut Self {
+        self.inner.stderr(cfg);
+        self
+    }
+
+    /// See [`std::process::Command::spawn`][process::Command#method.spawn].
+    pub fn spawn<T: Into<Stdio>>(&mut self) -> io::Result<Child> {
+        self.inner.spawn()
+    }
+
+    /// See [`std::process::Command::output`][process::Command#method.output].
     pub fn output(&mut self) -> io::Result<Output> {
         self.inner.output()
     }
 
+    /// See [`std::process::Command::status`][process::Command#method.status].
     pub fn status(&mut self) -> io::Result<ExitStatus> {
         self.inner.status()
     }
