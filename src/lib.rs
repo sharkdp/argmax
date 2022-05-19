@@ -37,6 +37,7 @@ use unix as platform;
 #[cfg(test)]
 mod experimental_limit;
 
+#[derive(Debug)]
 pub struct Command {
     inner: process::Command,
     remaining_argument_length: i64,
@@ -94,7 +95,7 @@ impl Command {
     }
 
     /// See [`std::process::Command::spawn`][process::Command#method.spawn].
-    pub fn spawn<T: Into<Stdio>>(&mut self) -> io::Result<Child> {
+    pub fn spawn(&mut self) -> io::Result<Child> {
         self.inner.spawn()
     }
 
@@ -106,5 +107,38 @@ impl Command {
     /// See [`std::process::Command::status`][process::Command#method.status].
     pub fn status(&mut self) -> io::Result<ExitStatus> {
         self.inner.status()
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_api() {
+        let mut cmd = Command::new("echo");
+        assert!(cmd.try_arg("Hello"));
+        assert!(cmd.try_arg("world!"));
+
+        cmd.current_dir(".");
+
+        cmd.stdin(Stdio::inherit());
+        cmd.stdout(Stdio::piped());
+        cmd.stderr(Stdio::null());
+
+        let mut output = cmd
+            .spawn()
+            .expect("spawn() to succeed")
+            .wait_with_output()
+            .expect("wait_with_output() to succeed");
+        assert!(output.stdout.len() > 12);
+        assert!(output.status.success());
+
+        output = cmd.output().expect("output() to succeed");
+        assert!(output.stdout.len() > 12);
+        assert!(output.status.success());
+
+        let status = cmd.status().expect("status() to succeed");
+        assert!(status.success());
     }
 }
