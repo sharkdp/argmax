@@ -13,3 +13,6 @@ authors = ["David Peter <mail@david-peter.de>"]
 [dependencies]
 nix = "0.23"
 lazy_static = "1.4"
+
+[target.'cfg(unix)'.dependencies]
+libc = "0.2.126"
