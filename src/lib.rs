@@ -20,7 +20,6 @@
 
 use std::ffi::OsStr;
 use std::io;
-use std::iter::FromIterator;
 use std::path::Path;
 use std::process::{self, Child, ExitStatus, Output, Stdio};
 
@@ -102,23 +101,18 @@ impl Command {
     /// Like [`std::process::Command::arg`][process::Command#method.arg], add an argument to the
     /// command, but only if it will fit.
     pub fn try_arg<S: AsRef<OsStr>>(&mut self, arg: S) -> io::Result<&mut Self> {
-        let arg = arg.as_ref();
-        let size = self.check_size(&[arg])?;
-        self.inner.arg(arg);
-        self.remaining_argument_length -= size;
-        Ok(self)
+        self.try_args(&[arg])
     }
 
     /// Like [`std::process::Command::arg`][process::Command#method.args], add multiple arguments to
     /// the command, but only if they will all fit.
     pub fn try_args<I, S>(&mut self, args: I) -> io::Result<&mut Self>
     where
-        I: IntoIterator<Item = S>,
+        I: IntoIterator<Item = S> + Copy,
         S: AsRef<OsStr>,
     {
-        let args = Vec::from_iter(args);
-        let size = self.check_size(&args)?;
-        self.inner.args(&args);
+        let size = self.check_size(args)?;
+        self.inner.args(args);
         self.remaining_argument_length -= size;
         Ok(self)
     }
