@@ -12,7 +12,7 @@
 //! let mut cmd = Command::new("/bin/echo");
 //!
 //! // Add as many arguments as possible
-//! while cmd.try_arg("foo") {}
+//! while cmd.try_arg("foo").is_ok() {}
 //!
 //! assert!(cmd.status().unwrap().success());
 //! # }
@@ -53,21 +53,68 @@ impl Command {
         }
     }
 
-    /// Like [`std::process::Command::arg`][process::Command#method.arg], add an argument to the
-    /// command, but only if it will fit.
-    pub fn try_arg<S: AsRef<OsStr>>(&mut self, arg: S) -> bool {
-        if arg.as_ref().len() as i64 > platform::max_single_argument_length() {
-            return false;
+    /// Return the appropriate error for a too-big command line.
+    fn e2big() -> io::Error {
+        // io::ErrorKind::ArgumentListTooLong is unstable, so get it manually
+        #[cfg(unix)]
+        return io::Error::from_raw_os_error(libc::E2BIG);
+        #[cfg(not(unix))]
+        return io::ErrorKind::Other.into();
+    }
+
+    /// Get the size of some arguments, if they'll fit.
+    fn check_size<I, S>(&self, args: I) -> io::Result<i64>
+    where
+        I: IntoIterator<Item = S>,
+        S: AsRef<OsStr>,
+    {
+        let mut size = 0;
+        for arg in args {
+            let arg = arg.as_ref();
+            if arg.len() as i64 > platform::max_single_argument_length() {
+                return Err(Self::e2big());
+            }
+            size += platform::arg_size(arg);
         }
 
-        let arg_size = platform::arg_size(&arg);
-        if arg_size > self.remaining_argument_length {
-            false
-        } else {
-            self.remaining_argument_length -= arg_size;
-            self.inner.arg(arg);
-            true
+        if size > self.remaining_argument_length {
+            return Err(Self::e2big());
         }
+
+        Ok(size)
+    }
+
+    /// Check if an additional argument would fit in the command.
+    pub fn arg_would_fit<S: AsRef<OsStr>>(&self, arg: S) -> bool {
+        self.args_would_fit(&[arg])
+    }
+
+    /// Check if multiple additional arguments would all fit in the command.
+    pub fn args_would_fit<I, S>(&self, args: I) -> bool
+    where
+        I: IntoIterator<Item = S>,
+        S: AsRef<OsStr>,
+    {
+        self.check_size(args).is_ok()
+    }
+
+    /// Like [`std::process::Command::arg`][process::Command#method.arg], add an argument to the
+    /// command, but only if it will fit.
+    pub fn try_arg<S: AsRef<OsStr>>(&mut self, arg: S) -> io::Result<&mut Self> {
+        self.try_args(&[arg])
+    }
+
+    /// Like [`std::process::Command::arg`][process::Command#method.args], add multiple arguments to
+    /// the command, but only if they will all fit.
+    pub fn try_args<I, S>(&mut self, args: I) -> io::Result<&mut Self>
+    where
+        I: IntoIterator<Item = S> + Copy,
+        S: AsRef<OsStr>,
+    {
+        let size = self.check_size(args)?;
+        self.inner.args(args);
+        self.remaining_argument_length -= size;
+        Ok(self)
     }
 
     /// See [`std::process::Command::current_dir`][process::Command#method.current_dir].
@@ -117,8 +164,9 @@ mod tests {
     #[test]
     fn test_api() {
         let mut cmd = Command::new("echo");
-        assert!(cmd.try_arg("Hello"));
-        assert!(cmd.try_arg("world!"));
+        cmd.try_arg("Hello").expect("try_arg() to succeed");
+        cmd.try_args(&["world", "!"])
+            .expect("try_args() to succeed");
 
         cmd.current_dir(".");
 
@@ -131,11 +179,11 @@ mod tests {
             .expect("spawn() to succeed")
             .wait_with_output()
             .expect("wait_with_output() to succeed");
-        assert!(output.stdout.len() > 12);
+        assert!(output.stdout.len() > 13);
         assert!(output.status.success());
 
         output = cmd.output().expect("output() to succeed");
-        assert!(output.stdout.len() > 12);
+        assert!(output.stdout.len() > 13);
         assert!(output.status.success());
 
         let status = cmd.status().expect("status() to succeed");

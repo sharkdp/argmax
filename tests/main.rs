@@ -10,8 +10,7 @@ fn get_echo_command() -> Command {
 #[cfg(windows)]
 fn get_echo_command() -> Command {
     let mut cmd = Command::new("cmd");
-    cmd.try_arg("/c");
-    cmd.try_arg("echo");
+    cmd.try_args(&["/c", "echo"]).expect("try_args(/c echo)");
     cmd
 }
 
@@ -19,8 +18,8 @@ fn get_echo_command() -> Command {
 fn can_execute_simple_command_with_few_arguments() {
     let mut cmd = get_echo_command();
 
-    assert!(cmd.try_arg("foo"));
-    assert!(cmd.try_arg("bar"));
+    cmd.try_arg("foo").expect("try_arg(foo)");
+    cmd.try_arg("bar").expect("try_arg(bar)");
 
     #[cfg(not(windows))]
     assert_eq!(b"foo bar\n", &cmd.output().unwrap().stdout[..]);
@@ -39,7 +38,7 @@ fn can_run_command_with_maximum_number_of_arguments() {
 
         let mut actual_n_args = 0;
         for _ in 0..try_n_args {
-            if !cmd.try_arg("foo") {
+            if cmd.try_arg("foo").is_err() {
                 reached_limit = true;
                 break;
             }
@@ -64,7 +63,7 @@ fn can_run_command_with_single_long_argument() {
         cmd.stdout(Stdio::null());
 
         let arg = "x".repeat(length);
-        if !cmd.try_arg(arg) {
+        if cmd.try_arg(arg).is_err() {
             break;
         }
         println!("Trying execution with argument length {}", length);
