@@ -6,7 +6,7 @@
 ``` rust
 fn try_arg<S: AsRef<OsStr>>(&mut self, arg: S) -> io::Result<&mut Self>
 ```
-function that returns `false` if `arg` would overflow the maximum size.
+function that returns a proper `Err`or if `arg` would overflow the maximum size.
 
 ## Resources
 
