@@ -11,7 +11,7 @@ edition = "2018"
 authors = ["David Peter <mail@david-peter.de>"]
 
 [dependencies]
-nix = "0.23"
+nix = { version = "0.24.2", default-features = false, features = ["feature"] }
 lazy_static = "1.4"
 
 [target.'cfg(unix)'.dependencies]
