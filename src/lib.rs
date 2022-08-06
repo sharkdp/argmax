@@ -9,7 +9,7 @@
 //! # {
 //! use argmax::Command;
 //!
-//! let mut cmd = Command::new("/bin/echo");
+//! let mut cmd = Command::new("echo");
 //!
 //! // Add as many arguments as possible
 //! while cmd.try_arg("foo").is_ok() {}

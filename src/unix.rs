@@ -106,11 +106,10 @@ mod tests {
         println!("Experimental limit: {}", experimental_limit);
 
         let arg_size = 8 + 3 + 1;
-        let experimental_size_limit =
-            experimental_limit * arg_size + 8 + 1 + "/bin/echo".len() as i64;
+        let experimental_size_limit = experimental_limit * arg_size + 8 + 1 + "echo".len() as i64;
 
         assert!(
-            available_argument_length([OsStr::new("/bin/echo")].iter()).unwrap_or(0)
+            available_argument_length([OsStr::new("echo")].iter()).unwrap_or(0)
                 <= experimental_size_limit
         );
     }
