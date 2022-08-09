@@ -4,7 +4,7 @@ use argmax::Command;
 
 #[cfg(not(windows))]
 fn get_echo_command() -> Command {
-    Command::new("/bin/echo")
+    Command::new("echo")
 }
 
 #[cfg(windows)]
