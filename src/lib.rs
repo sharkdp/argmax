@@ -20,6 +20,7 @@
 
 use std::ffi::OsStr;
 use std::io;
+use std::ops::Deref;
 use std::path::Path;
 use std::process::{self, Child, ExitStatus, Output, Stdio};
 
@@ -155,9 +156,13 @@ impl Command {
     pub fn status(&mut self) -> io::Result<ExitStatus> {
         self.inner.status()
     }
+}
 
-    pub fn get_program(&self) -> &OsStr {
-        self.inner.get_program()
+impl Deref for Command {
+    type Target = process::Command;
+
+    fn deref(&self) -> &Self::Target {
+        &self.inner
     }
 }
 
@@ -192,7 +197,5 @@ mod tests {
 
         let status = cmd.status().expect("status() to succeed");
         assert!(status.success());
-
-        assert_eq!(cmd.get_program(), "echo");
     }
 }
