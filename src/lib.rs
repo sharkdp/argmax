@@ -155,6 +155,10 @@ impl Command {
     pub fn status(&mut self) -> io::Result<ExitStatus> {
         self.inner.status()
     }
+
+    pub fn get_program(&self) -> &OsStr {
+        self.inner.get_program()
+    }
 }
 
 #[cfg(test)]
@@ -188,5 +192,7 @@ mod tests {
 
         let status = cmd.status().expect("status() to succeed");
         assert!(status.success());
+
+        assert_eq!(cmd.get_program(), "echo");
     }
 }
