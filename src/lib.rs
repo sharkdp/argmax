@@ -20,6 +20,7 @@
 
 use std::ffi::OsStr;
 use std::io;
+use std::ops::Deref;
 use std::path::Path;
 use std::process::{self, Child, ExitStatus, Output, Stdio};
 
@@ -154,6 +155,14 @@ impl Command {
     /// See [`std::process::Command::status`][process::Command#method.status].
     pub fn status(&mut self) -> io::Result<ExitStatus> {
         self.inner.status()
+    }
+}
+
+impl Deref for Command {
+    type Target = process::Command;
+
+    fn deref(&self) -> &Self::Target {
+        &self.inner
     }
 }
 
