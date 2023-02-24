@@ -6,27 +6,26 @@
 use std::env;
 use std::ffi::OsStr;
 
-use lazy_static::lazy_static;
 use nix::unistd::{sysconf, SysconfVar};
+use once_cell::sync::Lazy;
 
 use crate::constants::POINTER_SIZE_CONSERVATIVE;
 
 const UPPER_BOUND_COMMAND_LINE_LENGTH: i64 = 16 * 1024 * 1024;
 
-lazy_static! {
-    static ref PAGE_SIZE: i64 = {
-        sysconf(SysconfVar::PAGE_SIZE)
-            .ok()
-            .flatten()
-            .map(|page_size| page_size as i64)
-            .filter(|s| *s >= 4096)
-            .unwrap_or(4096)
-    };
+static PAGE_SIZE: Lazy<i64> = Lazy::new(|| {
+    sysconf(SysconfVar::PAGE_SIZE)
+        .ok()
+        .flatten()
+        // cast required on 32bit platforms
+        .map(|page_size| page_size as i64)
+        .filter(|&s| s >= 4096)
+        .unwrap_or(4096)
+});
 
-    // TODO: The following is probably Linux specific. See /usr/include/linux/binfmts.h for
-    // details.
-    pub static ref MAX_SINGLE_ARGUMENT_LENGTH: i64 = 32 * *PAGE_SIZE - 1;
-}
+// TODO: The following is probably Linux specific.
+// See /usr/include/linux/binfmts.h for details.
+pub static MAX_SINGLE_ARGUMENT_LENGTH: Lazy<i64> = Lazy::new(|| 32 * *PAGE_SIZE - 1);
 
 /// Required size for a single KEY=VAR environment variable string and the
 /// corresponding pointer in envp**.
