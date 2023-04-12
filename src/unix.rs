@@ -62,6 +62,13 @@ pub(crate) fn available_argument_length<O: AsRef<OsStr>>(
         arg_max = UPPER_BOUND_COMMAND_LINE_LENGTH;
     }
 
+    if cfg!(all(target_os = "illumos", target_pointer_width = "64")) {
+        // When a 64-bit rust retrieves ARG_MAX, it will get the value that
+        // applies to 64-bit binaries which is twice that allowed for 32-bit.
+        // Since we may well be exec()ing a 32-bit binary, reduce the limit.
+        arg_max /= 2;
+    }
+
     // We have to share space with the environment variables
     arg_max -= size_of_environment();
     // Account for the terminating NULL entry
