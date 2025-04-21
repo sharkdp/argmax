@@ -118,6 +118,39 @@ impl Command {
         Ok(self)
     }
 
+    /// See [`std::process::Command::env`][process::Command#method.env].
+    pub fn env<K, V>(&mut self, key: K, val: V) -> &mut Self
+    where
+        K: AsRef<OsStr>,
+        V: AsRef<OsStr>,
+    {
+        self.inner.env(key, val);
+        self
+    }
+
+    /// See [`std::process::Command::envs`][process::Command#method.envs].
+    pub fn envs<I, K, V>(&mut self, vars: I) -> &mut Self
+    where
+        I: IntoIterator<Item = (K, V)>,
+        K: AsRef<OsStr>,
+        V: AsRef<OsStr>,
+    {
+        self.inner.envs(vars);
+        self
+    }
+
+    /// See [`std::process::Command::env_remove`][process::Command#method.env_remove].
+    pub fn env_remove<K: AsRef<OsStr>>(&mut self, key: K) -> &mut Self {
+        self.inner.env_remove(key);
+        self
+    }
+
+    /// See [`std::process::Command::env_clear`][process::Command#method.env_clear].
+    pub fn env_clear(&mut self) -> &mut Self {
+        self.inner.env_clear();
+        self
+    }
+
     /// See [`std::process::Command::current_dir`][process::Command#method.current_dir].
     pub fn current_dir<P: AsRef<Path>>(&mut self, dir: P) -> &mut Self {
         self.inner.current_dir(dir);
