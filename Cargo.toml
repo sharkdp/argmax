@@ -11,7 +11,7 @@ edition = "2018"
 authors = ["David Peter <mail@david-peter.de>"]
 
 [dependencies]
-nix = { version = "0.25.0", default-features = false, features = ["feature"] }
+nix = { version = "0.29.0", default-features = false, features = ["feature"] }
 once_cell = "1.17"
 
 [target.'cfg(unix)'.dependencies]
