@@ -10,6 +10,10 @@ readme = "README.md"
 edition = "2018"
 authors = ["David Peter <mail@david-peter.de>"]
 
+[[test]]
+name = "windows_args"
+harness = false
+
 [dependencies]
 nix = { version = "0.30.1", default-features = false, features = ["feature"] }
 once_cell = "1.17"

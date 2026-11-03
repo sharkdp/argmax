@@ -8,6 +8,18 @@ fn try_arg<S: AsRef<OsStr>>(&mut self, arg: S) -> io::Result<&mut Self>
 ```
 function that returns a proper `Err`or if `arg` would overflow the maximum size.
 
+## Windows arguments
+
+`Command::new_quoted` is an opt-in constructor for passing literal arguments to
+MSYS2/Cygwin programs. It also preserves arguments for native programs using the
+Windows C runtime. Quoting and escaping are included in the argument-size budget.
+Use the ordinary `Command::new` for `cmd.exe` and batch files, which have different
+escaping rules.
+
+The Windows argument tests use Git for Windows's `printf.exe` when available.
+Set `ARGMAX_MSYS_PRINTF` to test another MSYS2 installation. Native Windows
+argument checks run independently of whether MSYS2 is installed.
+
 ## Resources
 
 This library draws inspiration from the following sources. The implementation is based on

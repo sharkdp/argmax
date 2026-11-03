@@ -19,6 +19,8 @@
 //! ```
 
 use std::ffi::OsStr;
+#[cfg(windows)]
+use std::ffi::OsString;
 use std::io;
 use std::ops::Deref;
 use std::path::Path;
@@ -29,6 +31,8 @@ mod constants;
 mod other;
 #[cfg(unix)]
 mod unix;
+#[cfg(windows)]
+mod windows;
 
 #[cfg(not(unix))]
 use other as platform;
@@ -42,6 +46,10 @@ mod experimental_limit;
 pub struct Command {
     inner: process::Command,
     remaining_argument_length: i64,
+    #[cfg(windows)]
+    quote_args: bool,
+    #[cfg(windows)]
+    args: Vec<OsString>,
 }
 
 impl Command {
@@ -51,7 +59,31 @@ impl Command {
             inner: process::Command::new(&program),
             remaining_argument_length: platform::available_argument_length([program].iter())
                 .unwrap_or(constants::REASONABLE_DEFAULT_LENGTH),
+            #[cfg(windows)]
+            quote_args: false,
+            #[cfg(windows)]
+            args: Vec::new(),
         }
+    }
+
+    /// Create a command that quotes every Windows argument for MSYS2/Cygwin
+    /// compatibility. Arguments remain literal for programs using the C runtime.
+    ///
+    /// Do not use this constructor for `cmd.exe` or batch files, whose command
+    /// lines have different escaping rules. Use [`Command::new`] for those.
+    #[cfg(windows)]
+    pub fn new_quoted<S: AsRef<OsStr>>(program: S) -> Self {
+        let mut command = Self::new(program);
+        command.quote_args = true;
+        command
+    }
+
+    /// Return the original arguments, without Windows command-line escaping.
+    #[cfg(windows)]
+    pub fn get_args(
+        &self,
+    ) -> impl DoubleEndedIterator<Item = &OsStr> + ExactSizeIterator + Clone + std::fmt::Debug {
+        self.args.iter().map(OsString::as_os_str)
     }
 
     /// Return the appropriate error for a too-big command line.
@@ -76,6 +108,11 @@ impl Command {
                 return Err(Self::e2big());
             }
             size += platform::arg_size(arg);
+            #[cfg(windows)]
+            if self.quote_args {
+                // Account for quotes and doubled backslashes as well as UTF-16.
+                size += windows::extra_size(arg);
+            }
         }
 
         if size > self.remaining_argument_length {
@@ -113,7 +150,19 @@ impl Command {
         S: AsRef<OsStr>,
     {
         let size = self.check_size(args)?;
+        #[cfg(not(windows))]
         self.inner.args(args);
+        #[cfg(windows)]
+        for arg in args {
+            let arg = arg.as_ref();
+            if self.quote_args {
+                use std::os::windows::process::CommandExt;
+                self.inner.raw_arg(windows::quote(arg));
+            } else {
+                self.inner.arg(arg);
+            }
+            self.args.push(arg.to_owned());
+        }
         self.remaining_argument_length -= size;
         Ok(self)
     }
@@ -169,6 +218,21 @@ impl Deref for Command {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[cfg(windows)]
+    #[test]
+    fn quoted_arguments_respect_budget_and_failed_additions_are_atomic() {
+        let mut command = Command::new_quoted("echo");
+        command.remaining_argument_length = 15;
+        // A trailing backslash needs doubling plus two surrounding quotes.
+        assert!(!command.arg_would_fit("\\\\\\"));
+        assert!(command.try_args(["ok", "\\\\\\"]).is_err());
+        assert_eq!(command.get_args().len(), 0);
+        assert_eq!(command.inner.get_args().len(), 0);
+        assert_eq!(command.remaining_argument_length, 15);
+        command.try_arg("ok").unwrap();
+        assert_eq!(command.get_args().collect::<Vec<_>>(), [OsStr::new("ok")]);
+    }
 
     #[test]
     fn test_api() {
